@@ -1,5 +1,25 @@
 # YugabyteDB (YSQL) Cache Demo App
 
+This is a demo Spring Boot application using YugabyteDB (YSQL/Postgres) as an arbitrary JSON "cache".
+
+The REST API is primary useful for testing as it would not be expected that the actual caching layer would require
+using REST. The logic itself could be easily embedded within the application itself, particularly if it was already
+using YugabyteDB for other structured persistent data.
+
+As a demo, this application implements a pattern of JDBC read/write using a caching key, time-to-live (TTL), and an
+arbitrary JSON value. While the schema itself is very simple, the uses of JSONB allows for optimal storage. As a
+typical cache may not require persistent storage, this implementation uses an "expires_at" timestamp to simulate actual
+cache data expiration (and eventual purge).
+
+For both fast read/write path it is anticipated that a "near-by" cluster be deployed, this could even be within the k8s
+cluster itself to reduce network latency. If the cache needs to be able to survive a full region failure, using an
+asynchronous xCluster would be desirable.
+
+In current configuration of GKE PODs connecting to YugabyteDB (outside GKE), the cache read p99s are < 2ms and cache
+writes p99s are < ?ms. If the applications performance budget needs to be less than that, there would be some
+improvement by deploying YugabyteDB directly to the GKE cluster, but beyond that, another caching solution might need to
+be used.
+
 ## Build the Container Image
 
 ```shell
@@ -66,6 +86,7 @@ Example:
 ```shell
 http <IP>/api/cache/20467137-43b2-4a70-a495-6965c37bc804
 ```
+
 The database won't have any records at first, so this will likely 404.
 
 ## Initialize the Database

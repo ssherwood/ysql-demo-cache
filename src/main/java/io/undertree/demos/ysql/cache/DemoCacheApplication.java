@@ -13,10 +13,8 @@ public class DemoCacheApplication {
         SpringApplication.run(DemoCacheApplication.class, args);
     }
 
-
     /**
-     * This is required so that we can use the @Timed annotation
-     * on methods that we want to time.
+     * This is required so that we can use the @Timed annotation on methods that we want to time.
      * See: https://micrometer.io/docs/concepts#_the_timed_annotation
      */
     @Bean
