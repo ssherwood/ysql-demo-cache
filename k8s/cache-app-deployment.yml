@@ -1,0 +1,102 @@
+#
+# TODO
+# - Improve liveness/readiness probes to be active sooner w/o failing out.
+#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-app
+spec:
+  selector:
+    matchLabels:
+      app: cache-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cache-app
+    spec:
+      containers:
+        - name: cache-app
+          image: ssherwood/yb-cache-app:latest  # change me
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: cache-app-config
+          env:
+            - name: DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: ysql-db-secrets
+                  key: ysql-app.db.username
+            - name: DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: ysql-db-secrets
+                  key: yslq-app.db.password
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 3
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 3
+          resources:
+            limits:
+              cpu: "2"
+              ephemeral-storage: "1Gi"
+              memory: "8Gi"
+            requests:
+              cpu: "2"
+              ephemeral-storage: "1Gi"
+              memory: "8Gi"
+---
+#
+# Right now this autoscaler isn't all that effective since it is hard to push the CPU
+# to the threshold with this application.
+#
+# TODO
+# - find a way to use custom metrics that use the LoadBalancer that is provisioned below
+# - using the HikariCP connection pool utilization metric might be good, > 70% utilized
+#
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cache-app-autoscaler
+  namespace: default
+spec:
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+    - resource:
+        name: cpu
+        target:
+          averageUtilization: 65
+          type: Utilization
+      type: Resource
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cache-app
+---
+#
+# Deploy the load balancer service to map external client request to the "cache-app"
+#
+apiVersion: v1
+kind: Service
+metadata:
+  name: cache-app-service
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: cache-app

@@ -1,0 +1,13 @@
+server:
+  forward-headers-strategy: native
+
+management:
+  endpoint:
+    health.probes.enabled: true
+  health.probes:
+    livenessstate.enabled: true
+    readinessstate.enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
