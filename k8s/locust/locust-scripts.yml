@@ -5,12 +5,12 @@ metadata:
 data:
   locustfile.py: |
     from locust import HttpUser, task, between, tag
-    import random
     import json
-
+    import random
+    
     class LoadSimulator(HttpUser):
         wait_time = between(0.1, 0.5)
-        json_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}    
+        json_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
         
         @task
         @tag('getCache')
@@ -18,7 +18,7 @@ data:
             num = random.randint(1, 1000000)
             cacheId = 'cdd7cacd-8e0a-4372-8ceb-' + str(num).zfill(12)
             self.client.get(f"/api/cache/{cacheId}", name="/api/cache/?")
-            
+        
         @task
         @tag('getCacheWithTTL')
         def get_cache_ttl(self):
@@ -26,12 +26,17 @@ data:
             cacheId = 'cdd7cacd-8e0a-4372-8ceb-' + str(num).zfill(12)
             self.client.get(f"/api/cache/alt/{cacheId}?ttl=30", name="/api/cache/alt/?")
         
-        #@task
-        @tag('createNotifyLog')
-        def post_notify_log(self):
-            self.client.post(f"/api/notify/log")
-  
-        #@task
+        @task
+        @tag('saveCache')
+        def post_cache(self):
+            json_data = {
+                'deviceId': "deviceId",
+                'mediaId': "mediaId",
+                'status': "status"
+            }
+            self.client.post(f"/api/cache?ttl=60", data=json.dumps(json_data), headers=LoadSimulator.json_headers, name="/api/cache/?")
+        
+        # @task
         @tag('deviceTracker2')
         def patch_device_tracker2(self):
             num = random.randint(1, 11000)
@@ -44,20 +49,4 @@ data:
                 'mediaId': mediaId,
                 'status': status
             }
-            self.client.patch(f"/api/tracker", data=json.dumps(jsond), headers={'Content-Type': 'application/json', 'Accept': 'application/json'})
-    
-        #@task
-        @tag('deviceTracker3')
-        def patch_device_tracker3(self):
-            batch_size = 100
-            self.client.post(f"/api/tracker/batch/{batch_size}")
-        
-        #@task
-        @tag('refreshToken')
-        def post_token(self):
-            self.client.post(f"/api/token?rand=100")
-        
-        #@task
-        @tag('refreshToken3')
-        def post_token3(self):
-            self.client.post(f"/api/tokens/test?rand=1000")
+            self.client.patch(f"/api/tracker", data=json.dumps(jsond), headers=json_headers)

@@ -2,23 +2,23 @@
 
 This is a demo Spring Boot application using YugabyteDB (YSQL/Postgres) as an arbitrary JSON "cache".
 
-The exposed REST API is primary useful for testing as it would not be expected that the actual caching layer would
-require using REST. The actual logic could be easily embedded within the application itself, particularly if it was
-already using YugabyteDB for other structured data.
+The exposed REST API is primarily for testing, as it would not be expected that the actual caching layer would require
+using REST. The actual logic could be easily embedded within the application itself, particularly if it was already
+using YugabyteDB for other structured data.
 
 As a demo, this application implements a basic pattern of JDBC read/write using a caching key, time-to-live (TTL), and
-any arbitrary JSON value. While the schema itself is very simple, the uses of JSONB allows for optimal storage. As a
-typical cache may not require persistent storage, this implementation uses an `expires_at` timestamp to simulate actual
-cache expiration (and its eventual purge).
+any arbitrary JSON value. While the schema itself is very simple, the use of JSONB allows for optimal storage. As a
+typical cache may not require persistent storage, this implementation uses an `expires_at` timestamp to simulate cache
+expiration (and its eventual purge).
 
-For both a fast read and write path, it is anticipated that a "near-by" YugabyteDB cluster be deployed - this could even
-be deployed within the k8s cluster itself to reduce network latency. If the cache needs to survive a full region
-failure, using asynchronous xCluster replication would be possible.
+For a fast read and write path, it is anticipated that a "near-by" YugabyteDB cluster be deployed - this could even be
+deployed within the k8s cluster itself to reduce network latency. If the cache needs to survive a full region failure,
+using asynchronous xCluster replication would be possible.
 
 With the current configuration of GKE PODs connecting to YugabyteDB (outside GKE), the cache read p99s are < 2ms and
 cache writes p99s are < ?ms. If the applications performance budget needs less than that, there would be some
 improvements by deploying YugabyteDB directly within the GKE cluster, but beyond that, another caching implementation
-might need to be used.
+might be needed.
 
 ## Build the Container Image
 
@@ -44,12 +44,12 @@ TODO. This is pretty basic through the UI and get the `gloud` command to run.
 ### GKE Tips
 
 - Pick the same region/zones as the database nodes.
-- For security reasons, use a private cluster.
-- Enable `Enable control plane authorized networks` to your personal IP address(es).
+- For better security, use a private cluster.
+- Select `Enable control plane authorized networks` and add your personal IP address(es).
 - The YugabyteDB VPC may need an ingress rule for the IP range of the provisioned GKE cluster.
   To locate the IP address CIDR, go to the cluster configuration and find `Pod IPv4 address range`.
   Add this to a firewall rule allowing ingress from these IPs.
-- Don't forget any required Labels
+- Don't forget any required Labels!
 
 ### Set up Local `kubectl` Credentials
 
