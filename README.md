@@ -2,23 +2,23 @@
 
 This is a demo Spring Boot application using YugabyteDB (YSQL/Postgres) as an arbitrary JSON "cache".
 
-The REST API is primary useful for testing as it would not be expected that the actual caching layer would require
-using REST. The logic itself could be easily embedded within the application itself, particularly if it was already
-using YugabyteDB for other structured persistent data.
+The exposed REST API is primary useful for testing as it would not be expected that the actual caching layer would
+require using REST. The actual logic could be easily embedded within the application itself, particularly if it was
+already using YugabyteDB for other structured data.
 
-As a demo, this application implements a pattern of JDBC read/write using a caching key, time-to-live (TTL), and an
-arbitrary JSON value. While the schema itself is very simple, the uses of JSONB allows for optimal storage. As a
-typical cache may not require persistent storage, this implementation uses an "expires_at" timestamp to simulate actual
-cache data expiration (and eventual purge).
+As a demo, this application implements a basic pattern of JDBC read/write using a caching key, time-to-live (TTL), and
+any arbitrary JSON value. While the schema itself is very simple, the uses of JSONB allows for optimal storage. As a
+typical cache may not require persistent storage, this implementation uses an `expires_at` timestamp to simulate actual
+cache expiration (and its eventual purge).
 
-For both fast read/write path it is anticipated that a "near-by" cluster be deployed, this could even be within the k8s
-cluster itself to reduce network latency. If the cache needs to be able to survive a full region failure, using an
-asynchronous xCluster would be desirable.
+For both a fast read and write path, it is anticipated that a "near-by" YugabyteDB cluster be deployed - this could even
+be deployed within the k8s cluster itself to reduce network latency. If the cache needs to survive a full region
+failure, using asynchronous xCluster replication would be possible.
 
-In current configuration of GKE PODs connecting to YugabyteDB (outside GKE), the cache read p99s are < 2ms and cache
-writes p99s are < ?ms. If the applications performance budget needs to be less than that, there would be some
-improvement by deploying YugabyteDB directly to the GKE cluster, but beyond that, another caching solution might need to
-be used.
+With the current configuration of GKE PODs connecting to YugabyteDB (outside GKE), the cache read p99s are < 2ms and
+cache writes p99s are < ?ms. If the applications performance budget needs less than that, there would be some
+improvements by deploying YugabyteDB directly within the GKE cluster, but beyond that, another caching implementation
+might need to be used.
 
 ## Build the Container Image
 
@@ -59,11 +59,16 @@ gcloud container clusters get-credentials <cluster_name> --region <region> --pro
 
 ## Create Database Secrets
 
+Provide your YugabyteDB credentials:
+
 ```shell
 kubectl create secret generic ysql-db-secrets --from-literal=ysql-app.db.username=yugabyte --from-literal=yslq-app.db.password="<password>"
 ```
 
 ## Create ConfigMap (east1)
+
+Update the config map with the IP addresses of the bootstrap nodes and the topology keys for the desired cluster. This
+example config allows for overriding most `application.yml` settings for ease in testing.
 
 ```shell
 kubectl apply -f k8s/cache-app-config-east1.yml
@@ -78,6 +83,7 @@ kubectl apply -f k8s/cache-app-deployment.yml
 ## Initial Application Testing
 
 Find the IP address assigned to the deployment.
+
 Look under `Exposing services` for the LoadBalancer. This is the external IP that can be used to test the deployment
 from outside the PODs.
 
@@ -111,6 +117,11 @@ kubectl apply -f k8s/locust/locust-deploy.yml
 ```shell
 kubectl port-forward locust-master-<id> 8089:8089
 ```
+
+Then navigate to http://localhost:8089 and use the Locust UI to start the load tests. It is highly recommended to watch
+the number of workers deployed as they will become the primary limiting factor to throughput. Also, as long as the
+YugabyteDB cluster is under 80% utilization, use the GKE settings to scale both number of workers and the number of
+application PODs for higher RPS.
 
 ## Known Issues
 
