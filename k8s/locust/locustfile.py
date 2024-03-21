@@ -10,7 +10,7 @@ import uuid
 class LoadSimulator(HttpUser):
     wait_time = between(0.1, 0.5)
     json_headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
-    random_company = ("Amazon", "Apple", "Facebook", "Google", "Microsoft", "Yugabyte")
+    random_company = ('Amazon', 'Apple', 'Facebook', 'Google', 'Microsoft', 'Netflix', 'Yugabyte')
     random_words = (
         'Lorem', 'ipsum', 'dolor', 'sit', 'amet,', 'consectetur', 'adipiscing', 'elit,', 'sed', 'do', 'eiusmod',
         'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore', 'magna', 'aliqua.'
@@ -25,34 +25,34 @@ class LoadSimulator(HttpUser):
 
     @task
     @tag('getCacheWithTTL')
-    def get_cache_ttl(self):
+    def get_cache_with_ttl(self):
         random_id = random.randint(1, 1000000)
         cache_id = f'cdd7cacd-8e0a-4372-8ceb-{random_id:012}'
-        self.client.get(f'/api/cache/alt/{cache_id}?ttl=300', name='/api/cache/alt/{cacheId}?ttl=300')
+        self.client.get(f'/api/cache/alt/{cache_id}?ttl=300', name='/api/cache/alt/{cache_id}?ttl=300')
 
     @task
     @tag('saveCache')
     def post_cache(self):
         json_data = {
-            "guid": str(uuid.uuid4()),
-            "isActive": random.random() < .90,
-            "balance": '${:,.2f}'.format(random.uniform(0.0, 999999.0)),
-            "picture": "http://placehold.it/32x32",
-            "age": random.randint(18, 99),
-            "name": "Gale Whitney",
-            "company": random.choice(LoadSimulator.random_company),
-            "phone": LoadSimulator.random_phone(),
-            "address": "104 Newkirk Avenue, Echo, Pennsylvania, 2279",
-            "about": ' '.join(random.sample(LoadSimulator.random_words, 15)),
-            "registered": LoadSimulator.random_date().isoformat(),
-            "latitude": random.uniform(-180.0, 180.0),
-            "longitude": random.uniform(-9.0, 90.0),
-            "cars": [
-                {"model": "BMW 230", "mpg": 27.5},
-                {"model": "Ford Edge", "mpg": 24.1}
+            'guid': str(uuid.uuid4()),
+            'isActive': random.random() < .90,
+            'balance': "${:,.2f}".format(random.uniform(0.0, 999999.0)),
+            'picture': 'http://placehold.it/32x32',
+            'age': random.randint(18, 99),
+            'name': 'Gale Whitney',
+            'company': random.choice(LoadSimulator.random_company),
+            'phone': LoadSimulator.random_phone(),
+            'address': '104 Newkirk Avenue, Echo, Pennsylvania, 2279',
+            'about': " ".join(random.sample(LoadSimulator.random_words, 15)),
+            'registered': LoadSimulator.random_date().isoformat(),
+            'latitude': random.uniform(-180.0, 180.0),
+            'longitude': random.uniform(-9.0, 90.0),
+            'cars': [
+                {'model': 'BMW 230', 'mpg': 27.5},
+                {'model': 'Ford Edge', 'mpg': 24.1}
             ]
         }
-        self.client.post(f"/api/cache?ttl=60", data=json.dumps(json_data), headers=LoadSimulator.json_headers)
+        self.client.post(f'/api/cache?ttl=60', data=json.dumps(json_data), headers=LoadSimulator.json_headers)
 
     # @task
     @tag('deviceTracker2')
@@ -67,7 +67,7 @@ class LoadSimulator(HttpUser):
             'mediaId': mediaId,
             'status': status
         }
-        self.client.patch(f"/api/tracker", data=json.dumps(jsond), headers=LoadSimulator.json_headers)
+        self.client.patch(f'/api/tracker', data=json.dumps(jsond), headers=LoadSimulator.json_headers)
 
     @staticmethod
     def random_date():
