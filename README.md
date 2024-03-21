@@ -15,10 +15,10 @@ For a fast read and write path, it is anticipated that a "near-by" YugabyteDB cl
 deployed within the k8s cluster itself to reduce network latency. If the cache needs to survive a full region failure,
 using asynchronous xCluster replication would be possible.
 
-With the current configuration of GKE PODs connecting to YugabyteDB (outside GKE), the cache read p99s are < 2ms and
-cache writes p99s are < ?ms. If the applications performance budget needs less than that, there would be some
-improvements by deploying YugabyteDB directly within the GKE cluster, but beyond that, another caching implementation
-might be needed.
+With the current configuration of GKE PODs connecting to YugabyteDB (outside GKE), the cache read p95s are < 2ms, cache
+inserts p95s < 3ms, and read with update p95 < 5ms. If the applications performance budget needs less than that, there
+would be some improvements by deploying YugabyteDB directly within the GKE cluster, but beyond that, another caching
+implementation might be needed.
 
 ## Build the Container Image
 
@@ -101,12 +101,21 @@ TODO
 
 ## Set up Locust Load Tests
 
+The `locustfile.py` needs to be deployed as a ConfigMap called `scripts-cm`:
+
 ```shell
-kubectl apply -f k8s/locust/locust-scripts.yml
+kubectl create configmap scripts-cm --from-file=k8s/locust/locustfile.py
+```
+
+If you need to modify the script, to redeploy it without having to delete and recreate the ConfigMap use the `dry-run`
+and `replace` option:
+
+```shell
+k create configmap scripts-cm --from-file=k8s/locust/locustfile.py -o yaml --dry-run=client | kubectl replace -f -
 ```
 
 This ConfigMap contains the actual scripts to run. Any changes will require a full redeploy of the
-map and the Locust deployment (or at least the worker nodes).
+map and the Locust worker nodes: `kubectl rollout restart deployment locust-worker`.
 
 ```shell
 kubectl apply -f k8s/locust/locust-deploy.yml

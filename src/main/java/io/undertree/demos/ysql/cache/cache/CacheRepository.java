@@ -3,6 +3,7 @@ package io.undertree.demos.ysql.cache.cache;
 import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.stereotype.Repository;
@@ -33,7 +34,7 @@ public class CacheRepository {
      * @param key the UUID of the cache entry
      * @return Optional of the JSON cache entity
      */
-    @Timed(value = "ysql.cache.find", description = "time to retrieve cache entry", percentiles = {0.5, 0.9, 0.99})
+    @Timed(value = "ysql.cache.find", description = "time to retrieve cache entry", percentiles = {0.5, 0.95, 0.99})
     public Optional<String> find(UUID key) {
         return jdbcClient.sql("""
                         SELECT value
@@ -55,7 +56,7 @@ public class CacheRepository {
      * @param timeToLive number of minutes to extend the entry's TTL
      * @return Optional of the JSON cache entity
      */
-    @Timed(value = "ysql.cache.findWithTTL", description = "time to retrieve cache entry and update ttl", percentiles = {0.5, 0.9, 0.99})
+    @Timed(value = "ysql.cache.findWithTTL", description = "time to retrieve cache entry and update ttl", percentiles = {0.5, 0.95, 0.99})
     public Optional<String> findWithTTL(UUID key, int timeToLive) {
         var keyHolder = new GeneratedKeyHolder();
         jdbcClient.sql("""
@@ -75,7 +76,7 @@ public class CacheRepository {
      * @param timeToLive
      * @return
      */
-    @Timed(value = "ysql.cache.insert", description = "time to upsert cache entry", percentiles = {0.5, 0.9, 0.99})
+    @Timed(value = "ysql.cache.insert", description = "time to upsert cache entry", percentiles = {0.5, 0.95, 0.99})
     public UUID insert(String json, int timeToLive) {
         var keyHolder = new GeneratedKeyHolder();
         jdbcClient.sql("""
@@ -93,7 +94,7 @@ public class CacheRepository {
      * @param timeToLive
      * @return
      */
-    @Timed(value = "ysql.cache.update", description = "time to update cache", percentiles = {0.5, 0.9, 0.99})
+    @Timed(value = "ysql.cache.update", description = "time to update cache", percentiles = {0.5, 0.95, 0.99})
     public int update(UUID key, String json, int timeToLive) {
         return jdbcClient.sql("""
                         UPDATE ysql_cache
@@ -109,7 +110,7 @@ public class CacheRepository {
      * @param key the UUID of the cache entry to delete
      * @return count of the number of deleted (this normally usually be 1)
      */
-    @Timed(value = "ysql.cache.delete", description = "time to delete cache entry", percentiles = {0.5, 0.9, 0.99})
+    @Timed(value = "ysql.cache.delete", description = "time to delete cache entry", percentiles = {0.5, 0.95, 0.99})
     public int delete(UUID key) {
         return jdbcClient.sql("""
                         DELETE FROM ysql_cache
