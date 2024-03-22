@@ -101,6 +101,8 @@ TODO
 
 ## Set up Locust Load Tests
 
+TODO research this: https://abdelrhmanhamouda.github.io/locust-k8s-operator/
+
 The `locustfile.py` needs to be deployed as a ConfigMap called `scripts-cm`:
 
 ```shell

@@ -58,7 +58,7 @@ public class CacheService {
 
     private void validateTTL(int timeToLive) {
         if (timeToLive < 1) {
-            throw new IllegalArgumentException("Invalid TTL");
+            throw new IllegalArgumentException("Invalid TTL: must be greater than 0");
         }
     }
 }
