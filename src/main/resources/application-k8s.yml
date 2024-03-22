@@ -3,15 +3,13 @@ server:
   compression.enabled: ${SERVER_COMPRESSION_ENABLED:true}
   forward-headers-strategy: ${SERVER_FORWARD_HEADER_STRATEGY:native}
   tomcat:
+    max-connections: ${TOMCAT_MAX_CONNECTIONS:8192}
     threads:
       max: ${TOMCAT_THREADS_MAX:250} # bump from 200
       min-spare: ${TOMCAT_THREADS_MIN_SPARE:10}
-    max-connections: 8192
 
 management:
   endpoint:
-    health.probes.enabled: true
+    health.probes.enabled: ${MANAGEMENT_HEALTH_PROBES_ENABLED:true}
   endpoints:
-    web:
-      exposure:
-        include: health,prometheus
+    web.exposure.include: ${MANAGEMENT_WEB_EXPOSURE_INCLUDE:health,prometheus}

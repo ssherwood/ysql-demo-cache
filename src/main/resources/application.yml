@@ -23,14 +23,10 @@ spring:
         topology-keys: ${YSQL_TOPOLOGY_KEYS:gcp.us-west1.*:1,gcp.us-central1.*:2,gcp.us-east1.*:3}
 
 management:
-  endpoints:
-    web:
-      exposure:
-        include: "*" # turn this off for PROD !!!S
+  endpoints.web.exposure.include: ${MANAGEMENT_WEB_EXPOSURE_INCLUDE:*} # turn this off for PROD !!!
 
 logging.level:
   com.zaxxer.hikari: ${HIKARI_LOG_LEVEL:TRACE}
   com.zaxxer.hikari.HikariConfig: ${HIKARI_CONFIG_LOG_LEVEL:DEBUG}
   com.yugabyte.Driver: ${YSQL_DRIVER_LOG_LEVEL:TRACE} # use DEBUG for connection info
   com.yugabyte.jdbc.PgConnection: ${YSQL_PGCONNECTION_LOG_LEVEL:DEBUG}
-  #org.springframework.transaction.interceptor: TRACE
