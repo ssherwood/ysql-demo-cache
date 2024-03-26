@@ -6,6 +6,7 @@ import json
 import random
 import uuid
 
+
 #
 # This page was useful: https://www.linode.com/docs/guides/load-testing-with-locust/
 #
@@ -29,6 +30,24 @@ class LoadSimulator(HttpUser):
     word_set = (
         'Lorem', 'ipsum', 'dolor', 'sit', 'amet,', 'consectetur', 'adipiscing', 'elit,', 'sed', 'do', 'eiusmod',
         'tempor', 'incididunt', 'ut', 'labore', 'et', 'dolore', 'magna', 'aliqua.'
+    )
+    street_names = (
+        '1st', '2nd', '3rd', '4th', 'Broadway', 'Cedar', 'Center', 'Central', 'Church', 'College', 'East', 'Elm',
+        'Green', 'Highland', 'Jackson', 'Johnson', 'Lake', 'Lincoln', 'Main', 'Maple', 'Mill', 'North', 'Oak', 'Park',
+        'Pine', 'Ridge', 'South', 'Spring', 'Sunset', 'Valley', 'Walnut', 'Washington', 'West', 'Willow'
+    )
+    street_suffix = (
+        'Ave', 'Blvd', 'Cir', 'Ct', 'Dr', 'Jct', 'Ln', 'Pl', 'Rd', 'St', 'Way'
+    )
+    us_cities = (
+        'Arlington', 'Bristol', 'Centerville', 'Chester', 'Clinton', 'Dayton', 'Dover', 'Fairview', 'Franklin',
+        'Georgetown', 'Greenville', 'Lebanon', 'Madison', 'Oakland', 'Salem', 'Springfield', 'Washington', 'Winchester'
+    )
+    us_states = (
+        'AK', 'AL', 'AR', 'AS', 'AZ', 'CA', 'CO', 'CT', 'DC', 'DE', 'FL', 'GA', 'GU', 'HI', 'IA', 'ID', 'IL', 'IN',
+        'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MP', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM',
+        'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'PR', 'RI', 'SC', 'SD', 'TN', 'TX', 'UM', 'UT', 'VA', 'VI', 'VT', 'WA',
+        'WI', 'WV', 'WY'
     )
 
     @task
@@ -75,12 +94,12 @@ class LoadSimulator(HttpUser):
             'guid': str(uuid.uuid4()),
             'isActive': LoadSimulator.random_boolean(.90),
             'balance': LoadSimulator.random_money(),
-            'picture': 'http://placehold.it/32x32',
-            'age': random.randint(18, 99),
+            'picture': LoadSimulator.random_image_url(),
+            'age': LoadSimulator.random_age(),
             'name': LoadSimulator.random_name(),
             'company': random.choice(LoadSimulator.company_set),
             'phone': LoadSimulator.random_phone(),
-            'address': '104 Newkirk Avenue, Echo, Pennsylvania, 2279',
+            'address': LoadSimulator.random_address(),
             'about': LoadSimulator.random_words(),
             'registered': LoadSimulator.random_date().isoformat(),
             'latitude': LoadSimulator.random_latitude(),
@@ -97,9 +116,13 @@ class LoadSimulator(HttpUser):
         return random.choice(LoadSimulator.first_name_set) + ' ' + random.choice(LoadSimulator.last_name_set)
 
     @staticmethod
-    def random_words(max_words=50, min_words=10) -> str:
-        return ' '.join(random.choice(LoadSimulator.word_set)
-                        for _ in range(random.randint(min_words, max_words)))
+    def random_age(min_age=18, max_age=99) -> int:
+        return random.randint(min_age, max_age)
+
+    @staticmethod
+    def random_words(max_words=50, min_words=10, join_by=' ') -> str:
+        return join_by.join(random.choice(LoadSimulator.word_set)
+                            for _ in range(random.randint(min_words, max_words)))
 
     @staticmethod
     def random_date(start=datetime.datetime(2000, 1, 1), end=datetime.datetime.now()):
@@ -110,6 +133,23 @@ class LoadSimulator(HttpUser):
         area_code = random.randint(200, 999)
         line_number = random.randint(0, 9999)
         return f'+1 ({area_code}) 555-{line_number:04}'
+
+    @staticmethod
+    def random_address() -> str:
+        house_number = random.randint(1, 9999)
+        street = random.choice(LoadSimulator.street_names)
+        street_suffix = random.choice(LoadSimulator.street_suffix)
+        city = random.choice(LoadSimulator.us_cities)
+        state = random.choice(LoadSimulator.us_states)
+        zip_code = str(random.randint(10000, 99999))
+        return f'{house_number} {street} {street_suffix}, {city}, {state} {zip_code}'
+
+    @staticmethod
+    def random_image_url():
+        image_width = 2 ** random.randint(1, 9)
+        image_height = 2 ** random.randint(1, 9)
+        image_text = LoadSimulator.random_words(5, 3, '_')
+        return f'https://placehold.it/{image_width}x{image_height}?text={image_text}'
 
     @staticmethod
     def random_boolean(weight=0.5) -> bool:
